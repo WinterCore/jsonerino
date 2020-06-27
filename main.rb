@@ -1,3 +1,5 @@
 #!/usr/bin/bash ruby
 
-puts "JSON Parser/Linter"
+require_relative './lib/lexer'
+
+puts 'JSON Parser/Linter'
