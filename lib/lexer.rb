@@ -1,4 +1,5 @@
-require_relative './token.rb'
+require_relative './token'
+require_relative './helpers'
 
 class Lexer
   SIMPLE_TOKENS_MATCHER = [
@@ -32,13 +33,15 @@ class Lexer
 
     while more_content?
 
+      v = collect_simple_token
+      return v if v
+
       # Numbers in JSON are only allowed to start with a minus sign
-      return collect_number if numeric? || @c == '-'
+      return collect_number if Helpers.numeric?(@c) || @c == '-'
 
       return collect_string if @c == '"'
 
-      v = collect_simple_token
-      return v if v
+      return collect_id if Helpers.alphanumeric?(@c)
 
       raise "Unexpected character '#{@c}'"
     end
@@ -58,6 +61,15 @@ class Lexer
     c = @c
     @c = @contents[@i]
     c
+  end
+
+  def collect_id
+    str = ''
+    while Helpers.alphanumeric?(@c)
+      str += @c
+      advance
+    end
+    Token.new Token::TOKEN_ID, str
   end
 
   def collect_simple_token
@@ -95,7 +107,7 @@ class Lexer
   def collect_unicode_escape
     str_number = 4.times.inject('0x') do |str|
       advance
-      raise "Invalid unicode escape sequence #{@c}" unless hex?
+      raise "Invalid unicode escape sequence #{@c}" unless Helpers.hex?(@c)
 
       str + @c
     end
@@ -107,20 +119,12 @@ class Lexer
     loop do
       str_number += @c
       advance
-      break unless numeric? || ['.', '-', '+', 'e', 'E'].include?(@c)
+      break unless Helpers.numeric?(@c) || ['.', '-', '+', 'e', 'E'].include?(@c)
     end
-    Token.new(Token::TOKEN_NUMBER, str_number)
+    Token.new(Token::TOKEN_NUMBER, str_number.match?(/[\.e]/i) ? str_number.to_f : str_number.to_i)
   end
 
   def more_content?
     @i < @contents.length
-  end
-
-  def numeric?
-    !@c.match(/[0-9]/).nil?
-  end
-
-  def hex?
-    !@c.match(/\h+/).nil?
   end
 end
