@@ -30,6 +30,8 @@ class Lexer
             advance_with_token(Token.new(Token::TOKEN_COLON, @c))
           when ','
             advance_with_token(Token.new(Token::TOKEN_COMMA, @c))
+          when "'", '"'
+            collect_string
           end
       return v if v
       raise "Unexpected character '#{@c}'"
@@ -48,6 +50,39 @@ class Lexer
     if has_more_content
       @i += 1
       @c = @contents[@i]
+    end
+  end
+
+  def collect_string
+    advance
+    str = ''
+
+    while @c != '"'
+      str += if @c == "\\" then collect_escape_sequence else @c end
+      advance
+    end
+    advance
+
+    Token.new(Token::TOKEN_STRING, str)
+  end
+
+  def collect_escape_sequence
+    advance
+    case @c
+    when '"'
+      "\""
+    when 'n'
+      "\n"
+    when 'b'
+      "\b"
+    when 'f'
+      "\f"
+    when 'r'
+      "\r"
+    when 't'
+      "\t"
+    else
+      @c
     end
   end
 
