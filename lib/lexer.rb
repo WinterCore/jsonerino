@@ -65,7 +65,7 @@ class Lexer
 
   def collect_id
     str = ''
-    while Helpers.alphanumeric?(@c)
+    while @c && Helpers.alphanumeric?(@c)
       str += @c
       advance
     end
@@ -119,7 +119,7 @@ class Lexer
     loop do
       str_number += @c
       advance
-      break unless Helpers.numeric?(@c) || ['.', '-', '+', 'e', 'E'].include?(@c)
+      break unless @c && (Helpers.numeric?(@c) || ['.', '-', '+', 'e', 'E'].include?(@c))
     end
     Token.new(Token::TOKEN_NUMBER, str_number.match?(/[\.e]/i) ? str_number.to_f : str_number.to_i)
   end
