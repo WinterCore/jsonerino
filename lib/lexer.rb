@@ -37,7 +37,7 @@ class Lexer
       return v if v
 
       # Numbers in JSON are only allowed to start with a minus sign
-      return collect_number if Helpers.numeric?(@c) || @c == '-'
+      return collect_number if number?
 
       return collect_string if @c == '"'
 
@@ -49,6 +49,10 @@ class Lexer
   end
 
   private
+
+  def number?
+    Helpers.numeric?(@c) || @c == '-'
+  end
 
   def skip_whitespace
     advance while [' ', "\n", "\t"].include?(@c)
