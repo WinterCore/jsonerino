@@ -16,6 +16,9 @@ class Lexer
         next
       end
 
+      if is_numeric || @c == '-' # Numbers in JSON are only allowed to start with a minus sign
+        return collect_number
+      end
 
       v = case @c
           when '{'
@@ -109,6 +112,10 @@ class Lexer
 
   def has_more_content
     @i < @contents.length
+  end
+
+  def is_numeric
+    !@c.match(/[0-9]/).nil?
   end
 
   def is_hex
