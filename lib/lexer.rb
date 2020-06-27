@@ -1,42 +1,45 @@
 require_relative './token.rb'
 
 class Lexer
+  SIMPLE_TOKENS_MATCHER = [
+    ['{', Token::TOKEN_LCURLY],
+    ['}', Token::TOKEN_RCURLY],
+    ['[', Token::TOKEN_LBRACKET],
+    [']', Token::TOKEN_RBRACKET],
+    [':', Token::TOKEN_COLON],
+    [',', Token::TOKEN_COMMA]
+  ].freeze
+
+  SIMPLE_ESCAPE_SEQUENCES_MATCHER = [
+    ['"', '"'],
+    ['b', "\b"],
+    ['f', "\f"],
+    ['r', "\r"],
+    %W[n \n],
+    %W[t \t]
+  ].freeze
+
   attr_reader :i
 
   def initialize(contents)
     @contents = contents
-    @i        = 0
-    @c        = contents[@i]
+    @i = 0
+    @c = contents[@i]
   end
 
-  def get_next_token
-    while has_more_content
-      if @c == ' ' || @c == "\n" || @c == "\t"  # skip whitespace
-        advance
-        next
-      end
+  def next_token
+    skip_whitespace
 
-      if is_numeric || @c == '-' # Numbers in JSON are only allowed to start with a minus sign
-        return collect_number
-      end
+    while more_content?
 
-      v = case @c
-          when '{'
-            advance_with_token(Token.new(Token::TOKEN_LCURLY, @c))
-          when '}'
-            advance_with_token(Token.new(Token::TOKEN_RCURLY, @c))
-          when '['
-            advance_with_token(Token.new(Token::TOKEN_LBRACKET, @c))
-          when ']'
-            advance_with_token(Token.new(Token::TOKEN_RBRACKET, @c))
-          when ':'
-            advance_with_token(Token.new(Token::TOKEN_COLON, @c))
-          when ','
-            advance_with_token(Token.new(Token::TOKEN_COMMA, @c))
-          when "'", '"'
-            collect_string
-          end
+      # Numbers in JSON are only allowed to start with a minus sign
+      return collect_number if numeric? || @c == '-'
+
+      return collect_string if @c == '"'
+
+      v = collect_simple_token
       return v if v
+
       raise "Unexpected character '#{@c}'"
     end
     nil
@@ -44,16 +47,24 @@ class Lexer
 
   private
 
-  def advance_with_token(token)
-    advance
-    token
+  def skip_whitespace
+    advance while [' ', "\n", "\t"].include?(@c)
   end
 
   def advance
-    if has_more_content
-      @i += 1
-      @c = @contents[@i]
-    end
+    return unless more_content?
+
+    @i += 1
+    c = @c
+    @c = @contents[@i]
+    c
+  end
+
+  def collect_simple_token
+    token = Lexer::SIMPLE_TOKENS_MATCHER.find { |x| x[0] == @c }
+    return nil unless token
+
+    Token.new token[1], advance
   end
 
   def collect_string
@@ -61,7 +72,7 @@ class Lexer
     str = ''
 
     while @c != '"'
-      str += if @c == "\\" then collect_escape_sequence else @c end
+      str += @c == '\\' ? collect_escape_sequence : @c
       advance
     end
     advance
@@ -71,20 +82,10 @@ class Lexer
 
   def collect_escape_sequence
     advance
-    case @c
-    when '"'
-      "\""
-    when 'n'
-      "\n"
-    when 'b'
-      "\b"
-    when 'f'
-      "\f"
-    when 'r'
-      "\r"
-    when 't'
-      "\t"
-    when 'u'
+
+    if (escape = Lexer::SIMPLE_ESCAPE_SEQUENCES_MATCHER.find { |x| x[0] == @c })
+      escape[1]
+    elsif @c == 'u'
       collect_unicode_escape
     else
       @c
@@ -94,31 +95,32 @@ class Lexer
   def collect_unicode_escape
     str_number = 4.times.inject('0x') do |str|
       advance
-      raise "Invalid unicode escape sequence #{@c}" unless is_hex
-      str += @c
-      str
+      raise "Invalid unicode escape sequence #{@c}" unless hex?
+
+      str + @c
     end
     str_number.to_i.chr
   end
 
   def collect_number
     str_number = ''
-    begin
+    loop do
       str_number += @c
       advance
-    end while is_numeric || ['.', '-', '+', 'e', 'E'].include?(@c)
+      break unless numeric? || ['.', '-', '+', 'e', 'E'].include?(@c)
+    end
     Token.new(Token::TOKEN_NUMBER, str_number)
   end
 
-  def has_more_content
+  def more_content?
     @i < @contents.length
   end
 
-  def is_numeric
+  def numeric?
     !@c.match(/[0-9]/).nil?
   end
 
-  def is_hex
+  def hex?
     !@c.match(/\h+/).nil?
   end
 end
