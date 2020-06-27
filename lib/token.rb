@@ -9,10 +9,13 @@ class Token
   TOKEN_COMMA = :token_comma
   TOKEN_COLON = :token_colon
 
-  attr_reader :token, :value
+  attr_reader :token, :value, :start, :finish, :line
 
-  def initialize(token, value)
+  def initialize(token, value, start, finish, line)
     @token = token
     @value = value
+    @start = start
+    @finish = finish
+    @line = line
   end
 end

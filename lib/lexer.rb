@@ -25,6 +25,8 @@ class Lexer
   def initialize(contents)
     @contents = contents
     @i = 0
+    @l = 1 # Line number (row)
+    @li = 1 # Character in current line (column)
     @c = contents[@i]
   end
 
@@ -55,35 +57,45 @@ class Lexer
   end
 
   def skip_whitespace
-    advance while [' ', "\n", "\t"].include?(@c)
+    while [' ', "\n", "\t"].include?(@c)
+      c = advance
+      if c == "\n"
+        @li = 1
+        @l += 1
+      end
+    end
   end
 
   def advance
     return unless more_content?
 
     @i += 1
+    @li += 1
     c = @c
     @c = @contents[@i]
     c
   end
 
   def collect_id
+    start_i = @li
     str = ''
     while @c && Helpers.alphanumeric?(@c)
       str += @c
       advance
     end
-    Token.new Token::TOKEN_ID, str
+    Token.new Token::TOKEN_ID, str, start_i, @li, @l
   end
 
   def collect_simple_token
+    start_i = @li
     token = Lexer::SIMPLE_TOKENS_MATCHER.find { |x| x[0] == @c }
     return nil unless token
 
-    Token.new token[1], advance
+    Token.new token[1], advance, start_i, @li, @l
   end
 
   def collect_string
+    start_i = @li
     advance
     str = ''
 
@@ -93,7 +105,7 @@ class Lexer
     end
     advance
 
-    Token.new(Token::TOKEN_STRING, str)
+    Token.new Token::TOKEN_STRING, str, start_i, @li, @l
   end
 
   def collect_escape_sequence
@@ -119,13 +131,15 @@ class Lexer
   end
 
   def collect_number
+    start_i = @li
     str_number = ''
     loop do
       str_number += @c
       advance
       break unless @c && (Helpers.numeric?(@c) || ['.', '-', '+', 'e', 'E'].include?(@c))
     end
-    Token.new(Token::TOKEN_NUMBER, str_number.match?(/[\.e]/i) ? str_number.to_f : str_number.to_i)
+    number = str_number.match?(/[\.e]/i) ? str_number.to_f : str_number.to_i
+    Token.new Token::TOKEN_NUMBER, number, start_i, @li, @l
   end
 
   def more_content?
