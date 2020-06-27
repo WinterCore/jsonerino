@@ -81,12 +81,37 @@ class Lexer
       "\r"
     when 't'
       "\t"
+    when 'u'
+      collect_unicode_escape
     else
       @c
     end
   end
 
+  def collect_unicode_escape
+    str_number = 4.times.inject('0x') do |str|
+      advance
+      raise "Invalid unicode escape sequence #{@c}" unless is_hex
+      str += @c
+      str
+    end
+    str_number.to_i.chr
+  end
+
+  def collect_number
+    str_number = ''
+    begin
+      str_number += @c
+      advance
+    end while is_numeric || ['.', '-', '+', 'e', 'E'].include?(@c)
+    Token.new(Token::TOKEN_NUMBER, str_number)
+  end
+
   def has_more_content
     @i < @contents.length
+  end
+
+  def is_hex
+    !@c.match(/\h+/).nil?
   end
 end
