@@ -99,7 +99,7 @@ class Lexer
     advance
     str = ''
 
-    while @c != '"'
+    while @c && @c != '"'
       str += @c == '\\' ? collect_escape_sequence : @c
       advance
     end
