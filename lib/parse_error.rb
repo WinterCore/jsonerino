@@ -1,0 +1,1 @@
+class JsonParseError < StandardError; end
