@@ -26,7 +26,7 @@ p output == [{"name" => "Alex","age" => 15}] # true
 Calling the `parse` method will convert the json string to it's corresponding ruby representation.
 
 
-[![Run on Repl.it](https://repl.it/badge/github/WinterCore/microverse-ruby-capstone-json-parser)](https://repl.it/github/WinterCore/microverse-ruby-capstone-json-parser)
+[![Run on Repl.it](https://repl.it/badge/github/WinterCore/microverse-ruby-capstone-json-parser)](https://repl.it/@WinterCore/microverse-ruby-capstone-json-parser#main.rb)
 
 ## Using the included json validator
 
