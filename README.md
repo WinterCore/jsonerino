@@ -8,6 +8,7 @@ First of all you need to add the following to your `Gemfile`
 ```
 gem 'jsonerino'
 ```
+Then you need to run `bundle install`.
 
 After that you can use it to parse json by calling the `parse` method
 
