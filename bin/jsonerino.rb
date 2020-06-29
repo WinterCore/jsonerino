@@ -1,0 +1,47 @@
+#!/usr/bin/bash ruby
+
+require 'pathname'
+
+require_relative '../lib/jsonerino'
+
+COLORS = ["\u001b[31m", "\u001b[32m"].freeze # [red, green]
+def colorize(str, color)
+  color + str + "\u001b[0m"
+end
+
+path = ARGV[0] || Dir.pwd
+
+abort('The specified file doesn\'t exist') if !File.exist?(path) && !File.exist?(File.join(Dir.pwd, path))
+
+path = (Pathname.new path).absolute? ? path : File.join(Dir.pwd, path)
+
+puts
+
+if File.file?(path)
+  begin
+    contents = File.read(path)
+    Jsonerino.parse contents
+  rescue StandardError => e
+    puts colorize("The parsing of '#{path}' has failed with error", COLORS[0])
+    puts colorize(e.message, COLORS[0])
+  else
+    puts colorize("The parsing of `#{path}` has succeeded. The file contains valid JSON data", COLORS[1])
+  end
+else
+  files = Dir["#{path}/**/*.json"]
+  files.each do |filename|
+    puts "Attempting to parse #{filename}...\n\n"
+    begin
+      contents = File.read(filename)
+      Jsonerino.parse contents
+    rescue StandardError => e
+      puts colorize("The parsing of '#{filename}' has failed with error", COLORS[0])
+      puts colorize(e, COLORS[0])
+    else
+      puts colorize("The parsing of `#{filename}` has succeeded. The file contains valid JSON data", COLORS[1])
+    end
+    puts "\n"
+    puts '-' * 40
+    puts "\n\n"
+  end
+end

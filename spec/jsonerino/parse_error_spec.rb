@@ -12,9 +12,9 @@ describe Jsonerino do
     end
 
     it 'Should print out the unexpected token that caused the error' do
-      expect { Jsonerino.parse('{"foo" }') }.to raise_error(Jsonerino::JsonParseError, /Unexpected token '}'/)
+      expect { Jsonerino.parse('{"foo" }') }.to raise_error(Jsonerino::JsonParseError, /Unexpected token '\}'/)
       expect { Jsonerino.parse('{"foo": : }') }.to raise_error(Jsonerino::JsonParseError, /Unexpected token ':'/)
-      expect { Jsonerino.parse('{"foo": ] }') }.to raise_error(Jsonerino::JsonParseError, /Unexpected token ']'/)
+      expect { Jsonerino.parse('{"foo": ] }') }.to raise_error(Jsonerino::JsonParseError, /Unexpected token '\]'/)
     end
 
     it 'Should throw end of input error when end of input is reached'\

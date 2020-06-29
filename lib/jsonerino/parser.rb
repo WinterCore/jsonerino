@@ -8,6 +8,7 @@ module Jsonerino
     def initialize(lexer)
       @lexer = lexer
       @current_token = lexer.next_token
+      @previous_token = nil
     end
 
     def parse
@@ -43,13 +44,15 @@ module Jsonerino
       end
 
       value = @current_token.value
+      @previous_token = @current_token
       @current_token = @lexer.next_token
       value
     end
 
     def raise_unexpected_token
-      message = "Unexpected token '#{@current_token.value}'"\
-                " at line #{@current_token.line} column #{@current_token.start} of the JSON data"
+      token = @current_token.nil? ? @previous_token : @current_token
+      message = "Unexpected token '#{token.value}'"\
+                " at line #{token.line} column #{token.start} of the JSON data"
       raise JsonParseError.new, message
     end
 
