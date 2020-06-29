@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    jsonerino (0.1.1)
+    jsonerino (0.2.4)
 
 GEM
   remote: https://rubygems.org/
