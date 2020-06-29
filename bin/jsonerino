@@ -36,7 +36,7 @@ else
       Jsonerino.parse contents
     rescue StandardError => e
       puts colorize("The parsing of '#{filename}' has failed with error", COLORS[0])
-      puts colorize(e, COLORS[0])
+      puts colorize(e.message, COLORS[0])
     else
       puts colorize("The parsing of `#{filename}` has succeeded. The file contains valid JSON data", COLORS[1])
     end
