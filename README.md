@@ -37,6 +37,17 @@ Calling the `parse` method will convert the json string to it's corresponding ru
 - Run `jsonerino <file|directory>`
     If no filename is provided. jsonerino will try to parse all the JSON files that are in your current working directory.
 
+## Invalid JSON Examples
+
+```json
+{ "foo: true }
+```
+Will throw "End of data reached while reading JSON contents" error. Because the parser will interpret everything after the first double quotes character as a string and it continues reading until it finds a closing double quotes. But in this case it doesn't which is why an error is thrown.
+
+```json
+{ "hey": foo }
+```
+Will throw "Unexpected token foo". Because foo is an unkown identifier. The allowed identifiers in JSON are `true`, `false`, and `null`. And in this case the error can be fixed by wrapping it in a string.
 
 ## Built with
 
